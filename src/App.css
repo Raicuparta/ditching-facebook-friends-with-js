@@ -1,0 +1,64 @@
+.App {
+  /* text-align: center; */
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+thead {
+  background: #141925;
+}
+
+table {
+  border-collapse: collapse;
+  border: 5px solid #141925;
+  border-radius: 5px;
+  overflow: hidden;
+  display: block;
+}
+
+tr:nth-child(even) {
+  background: #575f70;
+}
+
+tr:nth-child(even) td:nth-child(even) {
+  background: #474e5f;
+}
+
+td:nth-child(odd), thead td {
+  padding-right: 30px;
+}
+
+td {
+  padding: 5px;
+}
+
+tr td {
+  text-align: center;
+}
