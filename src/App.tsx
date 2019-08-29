@@ -12,11 +12,9 @@ import {
 import './App.css'
 
 function decodeFBString (fbString: string) {
-  const arr = []
-  for (var i = 0; i < fbString.length; i++) {
-    arr.push(fbString.charCodeAt(i))
-  }
-  return Buffer.from(arr).toString('utf8')
+  const codeArray = fbString.split('').map(char => char.charCodeAt(0))
+  const byteArray = Uint8Array.from(codeArray)
+  return new TextDecoder().decode(byteArray)
 }
 
 const App: React.FC = () => {
