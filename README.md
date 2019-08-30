@@ -240,3 +240,5 @@ function decodeFBEmoji (fbString) {
 ```
 
 So now we have what we need to properly render our results:
+
+![JavaScript console Output. Two participants, with reaction counts, and now showing correct emojis](https://i.imgur.com/1Dj8lKZ.png)
