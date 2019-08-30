@@ -173,7 +173,7 @@ parsedObject.messages.forEach(message => {
 
 This is how the logged output looks like:
 
-![JavaScript console Output. Two participants, with reaction counts, but with weird characters instead of emojis](https://i.imgur.com/RTFkouL.png)
+![JavaScript console Output. Two participants, with reaction counts, but with weird characters instead of emojis](https://i.imgur.com/kd0Fqks.png)
 
 Those don't look like any emojis I've ever seen. What gives?
 
@@ -241,4 +241,15 @@ function decodeFBEmoji (fbString) {
 
 So now we have what we need to properly render our results:
 
-![JavaScript console Output. Two participants, with reaction counts, and now showing correct emojis](https://i.imgur.com/1Dj8lKZ.png)
+![JavaScript console Output. Two participants, with reaction counts, and now showing correct emojis](https://i.imgur.com/9hOSokB.png)
+
+# Selecting a friend to ditch
+
+In this part of the article I'll need to use advanced calculus techniques that will overwhelm most of the readers. Do not be discouraged, it will make sense in the end.
+
+I split the six possible reactions into four categories:
+
+* Approval (👍)
+* Disapproval (👎)
+* Positive emotion (😆 and 😍)
+* Negative emotion (😢 and 😠)
