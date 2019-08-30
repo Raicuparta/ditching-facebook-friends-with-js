@@ -7,6 +7,9 @@ import {
   flatten,
   uniq,
   compact,
+  sortBy,
+  filter,
+  reverse,
 } from 'lodash'
 
 import './App.css'
@@ -87,6 +90,10 @@ const App: React.FC = () => {
       })
     })
 
+    const participantCount = filter(Object.values(participants), 'reactionCount').length
+
+    const messageCountAverage = parsedObject.messages.length / participantCount
+
     Object.entries(participants).forEach(([, participant]) => {
       const {
         reactions,
@@ -94,31 +101,24 @@ const App: React.FC = () => {
         messageCount,
       } = participant
 
-      const totalMessageFactor = messageCount / 100
-
-      const getCount = (emoji: string) => (reactions[emoji] || 0) / totalMessageFactor
+      const getCount = (emoji: string) => (reactions[emoji] || 0)
 
       const approval = getCount('👍')
       const disapproval = getCount('👎')
       const positiveEmotion = getCount('😆') + getCount('😍')
       const negativeEmotions = getCount('😢') + getCount('😠')
-      const sentReactionFactor = sentReactionCount / totalMessageFactor
-
-      const positiveFactor = 2 * approval + 3 * positiveEmotion + sentReactionFactor + totalMessageFactor
-      const negativeFactor = 2 * disapproval + 3 * negativeEmotions
+      const totalMessageFactor = Math.abs(messageCount - messageCountAverage) / (messageCountAverage)
+      const positiveFactor = (2 * approval + 3 * positiveEmotion + sentReactionCount)
+      const negativeFactor = (2 * disapproval + 3 * negativeEmotions)
 
       if (messageCount === 0) {
         participant.score = 0
       } else {
-        participant.score = Math.round(((positiveFactor - negativeFactor)) * 100) / 100
-      }
-
-      if (isNaN(participant.score)) {
-        console.log('isNaN', participant)
+        participant.score = Math.round(((positiveFactor - negativeFactor)) / totalMessageFactor) / 100
       }
     })
 
-    setParticipantList(Object.values(participants))
+    setParticipantList(reverse(sortBy(filter(Object.values(participants), 'reactionCount'), 'score')))
   }
 
   function handleFileChange (event: React.ChangeEvent<HTMLInputElement>) {
@@ -157,6 +157,9 @@ const App: React.FC = () => {
               </td>
               <td>
                 Reactions Sent
+              </td>
+              <td>
+                Total Messages
               </td>
               <td>
                 Score
@@ -198,6 +201,9 @@ const App: React.FC = () => {
                 </td>
                 <td>
                   {participant.sentReactionCount}
+                </td>
+                <td>
+                  {participant.messageCount}
                 </td>
                 <td>
                   {participant.score}

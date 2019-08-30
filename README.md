@@ -249,8 +249,9 @@ In this part of the article I'll need to use advanced calculus techniques that w
 
 For this equation, I need some variables:
 
-* Total message count (**T**)
-* Total reactions sent (**RS**)
+* Total message count for participant (**T**)
+* Total reactions sent by participant (**RS**)
+* Global average message count per participant (**AVG**)
 
 I split the six possible reactions into four categories:
 
@@ -261,14 +262,43 @@ I split the six possible reactions into four categories:
 
 The final equation is:
 
-![Equation: ((2A + 3PE + RS) - (2D + 3NE)) / T](https://i.imgur.com/UF2QPGF.png)
+![Equation: (2A + 3PE + SR) - (2D + 3NE)/(abs(T - AVG) / AVG)](https://i.imgur.com/Jw4JrIO.png)
 
-[Click here if you wanna learn how I reached this conclusion](https://i.imgur.com/g7mvdGT.png)
+[Click here if you wanna learn how I reached this equation](https://i.imgur.com/g7mvdGT.png)
 
-The equation's result will be a score. The friend with the lowest score will be removed from my life for good.
+In JavaScript it would go something like this:
 
-Now we can turn that equation into JavaScript:
+```js
+participants.forEach((participant) => {
+  const {
+    reactions,
+    sentReactionCount,
+    messageCount,
+  } = participant
 
+  const approval = reactions['👍']
+  const disapproval = reactions['👎']
+  const positiveEmotion = reactions['😆'] + reactions['😍']
+  const negativeEmotions = reactions['😢'] + reactions['😠']
 
+  const positiveFactor = (2 * approval + 3 * positiveEmotion + sentReactionCount)
+  const negativeFactor = (2 * disapproval + 3 * negativeEmotions)
+  const totalMessageFactor = Math.abs(messageCount - messageCountAverage) / (messageCountAverage)
+
+  participant.score = (positiveFactor - negativeFactor) / totalMessageFactor
+})
+```
+
+Displaying the information in table form makes it easier to parse:
+
+![Results table](https://i.imgur.com/9HbsshT.png)
+
+Note: Due to privacy concerns I replaced my friend's real names with their home addresses.
+
+# Goodbye
+
+With a quick look at the table I can finally decide who doesn't deserve my friendship anymore.
 
 ![Deleting Samuel Lopes from Facebook](https://i.imgur.com/aZWaG77.gif)
+
+Farewell!
