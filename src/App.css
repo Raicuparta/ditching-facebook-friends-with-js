@@ -51,12 +51,8 @@ tr:nth-child(even) td:nth-child(even) {
   background: #474e5f;
 }
 
-td:nth-child(odd), thead td {
-  padding-right: 30px;
-}
-
 td {
-  padding: 5px;
+  padding: 10px;
 }
 
 tr td {

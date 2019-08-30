@@ -130,9 +130,9 @@ const App: React.FC = () => {
     reader.readAsText(event.target.files[0])
   }
 
-  function perMessage (participant: Participant, count: number) {
-    return Math.round((count / participant.messageCount) * 1000) / 1000
-  }
+  // function perMessage (participant: Participant, count: number) {
+  //   return Math.round((count / participant.messageCount) * 1000) / 1000
+  // }
 
   return (
     <div className="App">
@@ -148,7 +148,7 @@ const App: React.FC = () => {
                 User
               </td>
               {reactionList.map(reaction => (
-                <td key={reaction} colSpan={2}>
+                <td key={reaction}>
                   {reaction}
                 </td>
               ))}
@@ -179,7 +179,6 @@ const App: React.FC = () => {
                     return (
                       <React.Fragment key={reaction}>
                         <td>-</td>
-                        <td>-</td>
                       </React.Fragment>
                     )
                   }
@@ -190,9 +189,6 @@ const App: React.FC = () => {
                     <React.Fragment key={reaction}>
                       <td>
                         {count}
-                      </td>
-                      <td>
-                        {perMessage(participant, count)}
                       </td>
                     </React.Fragment>
                   )
