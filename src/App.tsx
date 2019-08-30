@@ -33,6 +33,16 @@ const App: React.FC = () => {
     const parsedObject: ParsedObject = JSON.parse(target.result)
     const participants: ParticipantMap = {}
 
+    function createParticipant (name: string) {
+      participants[name] = {
+        name: decodeFBString(name),
+        reactions: {},
+        reactionCount: 0,
+        messageCount: 0,
+        reactionsSentCount: 0,
+      }
+    }
+
     // Get a list of all the possible reaction emojis
     setReactionList(
       uniq(compact(
@@ -47,12 +57,7 @@ const App: React.FC = () => {
       const sender = message.sender_name
 
       if (!participants[sender]) {
-        participants[sender] = {
-          name: decodeFBString(sender),
-          reactions: {},
-          reactionCount: 0,
-          messageCount: 0,
-        }
+        createParticipant(sender)
       }
 
       participants[sender].messageCount += 1
@@ -69,6 +74,14 @@ const App: React.FC = () => {
         }
         participants[sender].reactions[reaction] += count
         participants[sender].reactionCount += count
+      })
+
+      const actorCounts = countBy(message.reactions, 'actor')
+      Object.entries(actorCounts).forEach(([actor, count]) => {
+        if (!participants[actor]) {
+          createParticipant(actor)
+        }
+        participants[actor].reactionsSentCount += count
       })
     })
 
@@ -102,12 +115,15 @@ const App: React.FC = () => {
                 User
               </td>
               {reactionList.map(reaction => (
-                <td colSpan={2}>
+                <td key={reaction} colSpan={2}>
                   {decodeFBString(reaction)}
                 </td>
               ))}
-              <td colSpan={2}>
-                Total
+              <td>
+                Reactions Received
+              </td>
+              <td>
+                Reactions Sent
               </td>
             </tr>
           </thead>
@@ -125,31 +141,31 @@ const App: React.FC = () => {
 
                   if (!reactionObject) {
                     return (
-                      <>
+                      <React.Fragment key={reaction}>
                         <td>-</td>
                         <td>-</td>
-                      </>
+                      </React.Fragment>
                     )
                   }
 
                   const count = reactionObject[1]
 
                   return (
-                    <>
+                    <React.Fragment key={reaction}>
                       <td>
                         {count}
                       </td>
                       <td>
                         {perMessage(participant, count)}
                       </td>
-                    </>
+                    </React.Fragment>
                   )
                 })}
                 <td>
                   {participant.reactionCount}
                 </td>
                 <td>
-                  {perMessage(participant, participant.reactionCount)}
+                  {participant.reactionsSentCount}
                 </td>
               </tr>
             ))}

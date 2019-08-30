@@ -19,6 +19,7 @@ interface Participant {
   name: string
   reactionCount: number
   messageCount: number
+  reactionsSentCount: number
   reactions: {
     [reaction: string]: number
   }

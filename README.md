@@ -266,3 +266,9 @@ The final equation is:
 [Click here if you wanna learn how I reached this conclusion](https://i.imgur.com/g7mvdGT.png)
 
 The equation's result will be a score. The friend with the lowest score will be removed from my life for good.
+
+Now we can turn that equation into JavaScript:
+
+
+
+![Deleting Samuel Lopes from Facebook](https://i.imgur.com/aZWaG77.gif)
