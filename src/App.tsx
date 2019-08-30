@@ -39,7 +39,7 @@ const App: React.FC = () => {
         reactions: {},
         reactionCount: 0,
         messageCount: 0,
-        reactionsSentCount: 0,
+        sentReactionCount: 0,
       }
     }
 
@@ -48,7 +48,7 @@ const App: React.FC = () => {
       uniq(compact(
         map(
           flatten(map(parsedObject.messages, 'reactions')),
-          'reaction',
+          (reaction) => reaction && decodeFBString(reaction.reaction),
         )
       ))
     )
@@ -69,10 +69,12 @@ const App: React.FC = () => {
       const reactionCounts = countBy(message.reactions, 'reaction')
 
       Object.entries(reactionCounts).forEach(([reaction, count]) => {
-        if (participants[sender].reactions[reaction] === undefined) {
-          participants[sender].reactions[reaction] = 0
+        const decodedReaction = decodeFBString(reaction)
+
+        if (participants[sender].reactions[decodedReaction] === undefined) {
+          participants[sender].reactions[decodedReaction] = 0
         }
-        participants[sender].reactions[reaction] += count
+        participants[sender].reactions[decodedReaction] += count
         participants[sender].reactionCount += count
       })
 
@@ -81,8 +83,39 @@ const App: React.FC = () => {
         if (!participants[actor]) {
           createParticipant(actor)
         }
-        participants[actor].reactionsSentCount += count
+        participants[actor].sentReactionCount += count
       })
+    })
+
+    Object.entries(participants).forEach(([, participant]) => {
+      const {
+        reactions,
+        sentReactionCount,
+        messageCount,
+      } = participant
+
+      const totalMessageFactor = messageCount / 100
+
+      const getCount = (emoji: string) => (reactions[emoji] || 0) / totalMessageFactor
+
+      const approval = getCount('👍')
+      const disapproval = getCount('👎')
+      const positiveEmotion = getCount('😆') + getCount('😍')
+      const negativeEmotions = getCount('😢') + getCount('😠')
+      const sentReactionFactor = sentReactionCount / totalMessageFactor
+
+      const positiveFactor = 2 * approval + 3 * positiveEmotion + sentReactionFactor + totalMessageFactor
+      const negativeFactor = 2 * disapproval + 3 * negativeEmotions
+
+      if (messageCount === 0) {
+        participant.score = 0
+      } else {
+        participant.score = Math.round(((positiveFactor - negativeFactor)) * 100) / 100
+      }
+
+      if (isNaN(participant.score)) {
+        console.log('isNaN', participant)
+      }
     })
 
     setParticipantList(Object.values(participants))
@@ -116,7 +149,7 @@ const App: React.FC = () => {
               </td>
               {reactionList.map(reaction => (
                 <td key={reaction} colSpan={2}>
-                  {decodeFBString(reaction)}
+                  {reaction}
                 </td>
               ))}
               <td>
@@ -124,6 +157,9 @@ const App: React.FC = () => {
               </td>
               <td>
                 Reactions Sent
+              </td>
+              <td>
+                Score
               </td>
             </tr>
           </thead>
@@ -165,7 +201,10 @@ const App: React.FC = () => {
                   {participant.reactionCount}
                 </td>
                 <td>
-                  {participant.reactionsSentCount}
+                  {participant.sentReactionCount}
+                </td>
+                <td>
+                  {participant.score}
                 </td>
               </tr>
             ))}

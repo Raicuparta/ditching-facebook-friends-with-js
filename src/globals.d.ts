@@ -19,7 +19,8 @@ interface Participant {
   name: string
   reactionCount: number
   messageCount: number
-  reactionsSentCount: number
+  sentReactionCount: number
+  score: number
   reactions: {
     [reaction: string]: number
   }
