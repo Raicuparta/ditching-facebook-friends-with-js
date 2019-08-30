@@ -1,14 +1,12 @@
-# Ditching unfunny friends with Facebook data and React
+# Ditching useless friends with Facebook data and JavaScript
 
 Friendships are hard to maintain. So much energy is wasted maintaining friendships that might not actually provide any tangible returns. I find myself thinking "Sure I've known her since kindergarten, she introduced me to my wife, and let me crash at her place for 6 months when I was evicted, but is this *really* a worthwhile friendship?".
 
-That's why I've decided to get rid of at least half of my friends, and just keep the useful ones going forward.
+I need to decide which friends to ditch. But what's the criteria? Looks? Intelligence? Money?
 
-But how do I decide which friends to keep and which to ditch? What's the criteria? Looks? Intelligence? Money?
+After a long debate with myself I reached a conclusion: sense of humor. I should keep the funniest friends and get rid of everyone who bums me out. Plus, laughter is the best medicine, so there will be some health benefits.
 
-After a long debate with myself I reached a conclusion: sense of humor. I like funny stuff, so I should keep the funniest friends and get rid of everyone who bums me out. Plus, laughter is the best medicine, so there will be some health benefits.
-
-The next question is how do I measure funny? Surely, sense of humor is subjective. There's no way to benchmark it empirically, right? **WRONG**. There is one surefire way to way to gauge sense of humor: *the amount of laughing emoji reactions received on Facebook Messenger.*
+Surely, sense of humor is subjective. There's no way to benchmark it empirically, right? **WRONG**. There is one surefire way to way to gauge sense of humor: *the amount of laughing emoji reactions received on Facebook Messenger.*
 
 ![And the bartender said "why the long face" lmao. 12 laughing emoji reactions.](https://i.imgur.com/ztbplsK.png)
 
@@ -16,13 +14,13 @@ Obviously counting manually is out of the question; I need to automate this task
 
 # Getting the data
 
-Scraping the chats would be too slow. I think there's an API, but it looks scary and I'm not sure if it would allow me to do this. But there is one way to get all the info I need at once.
+Scraping the chats would be too slow. I think there's an API, but it looks scary and the documentation has so many words! I eventually found a way to get the data I need:
 
 ![Facebook data download page](https://i.imgur.com/nl0GO6g.png)
 
-Facebook lets me download all the deeply personal information they collected on me over the years in an easily readable JSON format. So kind of them! I make sure to select only the data I need (messages), and select the lowest image quality, to keep the archive as small as possible. It can take hours or even days to generate.
+[Facebook lets me download all the deeply personal information](https://www.facebook.com/help/1701730696756992) they collected on me over the years in an easily readable JSON format. So kind of them! I make sure to select only the data I need (messages), and select the lowest image quality, to keep the archive as small as possible. It can take hours or even days to generate.
 
-The next day, I get an email notifying me that the archive is ready to download (all 8.6 GB of it) under the "Available Copies" tab. The zip file has the following structure:
+The next day, I get an email notifying me that the archive is ready to download (all *8.6 GB* of it) under the "Available Copies" tab. The zip file has the following structure:
 
 ```
 messages
@@ -38,7 +36,7 @@ messages
     └── [bunch of PNGs]
 ```
 
-The directory I am interested in is `inbox`. That's where all the active chats are. The directories I marked with `[chats]` have more sub-directories inside them, one for each chat. The name of each of these is generated from the chat name, plus a unique identifier. So if your group chat is called Nude Volleyball Buddies, the name would be something like `NudeVolleyballBuddies_5tujptrnrm`. This directory has this structure:
+The directory I am interested in is `inbox`. The directories I marked with `[chats]` have this structure:
 
 ```
 [NudeVolleyballBuddies_5tujptrnrm]
@@ -53,9 +51,9 @@ The directory I am interested in is `inbox`. That's where all the active chats a
 └── message_1.json
 ```
 
-The data I need is in `message_1.json`. No clue why the `_1` sufix is needed. In my archive there was no `messasge_2.json` or any other variation.
+The data I need is in `message_1.json`. No clue why the `_1` sufix is needed. In my archive there was no `messasge_2.json` or any other variation. The full path would be `messages/inbox/NudeVolleyballBuddies_5tujptrnrm/message_1.json`.
 
-These files can get pretty big, so don't be surprised if your fancy IDE implodes at the sight of it. The chat I want to analyze is about 5 years old, which resulted in over *a million lines* of JSON.
+These files can get pretty big, so don't be surprised if your fancy IDE faints at the sight of it. The chat I want to analyze is about 5 years old, which resulted in over *a million lines* of JSON.
 
 The JSON file is structured like this:
 
@@ -86,6 +84,10 @@ Obviously I want to focus on `messages`. It's not just a list of strings, each m
     {
       "reaction": "\u00f0\u009f\u0098\u00a2",
       "actor": "Samuel Lopes"
+    },
+    {
+      "reaction": "\u00f0\u009f\u0098\u00a2",
+      "actor": "Carmen Franco"
     }
   ],
   "type": "Generic"
@@ -94,64 +96,55 @@ Obviously I want to focus on `messages`. It's not just a list of strings, each m
 
 And I found what I was looking for! All the reactions listed right there.
 
-// message reactions didn't exist until 2017
-// https://newsroom.fb.com/news/2017/03/introducing-message-reactions-and-mentions-for-messenger/
-
 # Reading the JSON from JavaScript
 
-I already have my React project set up with [Create React App](https://github.com/facebook/create-react-app), but how do I access the data in the JSON from my JavaScript code? With a file input and the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader):
+To access the data in the JSON from JavaScript, we can use the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader):
 
+```html
+<input type="file" accept=".json" onChange="handleChange(this)">
+```
 ```js
-function App () {
-  function handleReaderLoad (event: ProgressEvent) {
-    const parsedObject = JSON.parse(event.target.result)
-    console.log('parsed object', parsedObject)
-  }
+function handleChange(target) {
+  const reader = new FileReader();
+  reader.onload = handleReaderLoad;
+  reader.readAsText(target.files[0]);
+}
 
-  function handleFileChange (event) {
-    const reader = new FileReader()
-    reader.onload = handleReaderLoad
-    reader.readAsText(event.target.files[0])
-  }
-
-  return (
-    <div>
-      <input
-        type="file"
-        onChange={handleFileChange}
-      />
-    </div>
-  )
+function handleReaderLoad (event) {
+  const parsedObject = JSON.parse(event.target.result);
+  console.log('parsed object', parsedObject);
 }
 ```
 
-So now I see the file input field on my page, and the parsed JavaScript object is logged to the console when I select the JSON:
-
-// screenshot of file input console log
-
-It can take a few seconds due to the absurd length. Now we just need to figure out how to read it.
+So now I see the file input field on my page, and the parsed JavaScript object is logged to the console when I select the JSON. It can take a few seconds due to the absurd length. Now we just need to figure out how to read it.
 
 # Parsing the data
 
-Let's start simple. My first goal is to take my `messages_1.json` as input, and something like this as the output:
+Let's start simple. My first goal is to take my `messages_1.json` as **input**, and something like this as the **output**:
 
 ```js
 output = [
   {
     name: "Ricardo Lopes",
     counts: {
-      '😂': 10,
-      '😍': 3,
-      '😢': 4,
-      '😠': 7,
-      '😯': 3,
+      😂: 10,
+      😍: 3,
+      😢: 4,
+    },
+  },
+  {
+    name: "Samuel Lopes",
+    counts: {
+      😂: 4,
+      😍: 5,
+      😢: 12,
     },
   },
   // etc for every participant
 ]
 ```
 
-The `participants` object from the original JSON already has a similar format, so I start with that. Using `parsedObject` defined in `handleReaderLoad`:
+The `participants` object from the original JSON already has a similar format. Just need to add that `counts` field:
 
 ```js
 const output = parsedObject.participants.map(({ name }) => ({
@@ -160,12 +153,11 @@ const output = parsedObject.participants.map(({ name }) => ({
 }))
 ```
 
-Our output is pretty much just the participant list from the JSON, with an extra field where I will place the reaction counts. Now I need to iterate the whole message list, and accumulate the reaction counts:
+Now I need to iterate the whole message list, and accumulate the reaction counts:
 
 ```js
 parsedObject.messages.forEach(message => {
-  // I will update the counts in the output object,
-  // but need to find the correct participant to mutate.
+  // Find the correct participant in the output object
   const outputParticipant = output.find(({ name }) => name === message.sender_name)
 
   // Increment the reaction counts for that participant
