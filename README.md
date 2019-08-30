@@ -247,9 +247,22 @@ So now we have what we need to properly render our results:
 
 In this part of the article I'll need to use advanced calculus techniques that will overwhelm most of the readers. Do not be discouraged, it will make sense in the end.
 
+For this equation, I need some variables:
+
+* Total message count (**T**)
+* Total reactions sent (**RS**)
+
 I split the six possible reactions into four categories:
 
-* Approval (👍)
-* Disapproval (👎)
-* Positive emotion (😆 and 😍)
-* Negative emotion (😢 and 😠)
+* 👍: Approval (**A**)
+* 👎: Disapproval (**D**)
+* 😆 and 😍: Positive emotion (**PE**)
+* 😢 and 😠: Negative emotion (**NE**)
+
+The final equation is:
+
+![Equation: ((2A + 3PE + RS) - (2D + 3NE)) / T](https://i.imgur.com/UF2QPGF.png)
+
+[Click here if you wanna learn how I reached this conclusion](https://i.imgur.com/g7mvdGT.png)
+
+The equation's result will be a score. The friend with the lowest score will be removed from my life for good.
