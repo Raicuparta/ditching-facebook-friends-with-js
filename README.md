@@ -172,7 +172,8 @@ parsedObject.messages.forEach(message => {
 ```
 
 This is how the logged output looks like:
-// output log with broken emojis
+
+![JavaScript console Output. Two participants, with reaction counts, but with weird characters instead of emojis](https://i.imgur.com/RTFkouL.png)
 
 Those don't look like any emojis I've ever seen. What gives?
 
@@ -184,7 +185,7 @@ I grab one message as an example, and it only has one reaction: the crying emoji
 "reaction": "\u00f0\u009f\u0098\u00a2"
 ```
 
-How does this fun character train relate to the crying emoji?
+How does this character train relate to the crying emoji?
 
 It may not look like it, but this string is four characters long:
 
