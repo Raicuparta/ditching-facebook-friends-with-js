@@ -4,9 +4,7 @@ Friendships are hard to maintain. So much energy is wasted maintaining friendshi
 
 I need to decide which friends to ditch. But what's the criteria? Looks? Intelligence? Money?
 
-After a long debate with myself I reached a conclusion: sense of humor. I should keep the funniest friends and get rid of everyone who bums me out. Plus, laughter is the best medicine, so there will be some health benefits.
-
-Surely, sense of humor is subjective. There's no way to benchmark it empirically, right? **WRONG**. There is one surefire way to way to gauge sense of humor: *the amount of laughing emoji reactions received on Facebook Messenger.*
+Surely, the value of an individual is subjective. There's no way to benchmark it empirically, right? **WRONG**. There is one surefire way to way to measure the worth of a friend: *the amount of emoji reactions received on Facebook Messenger.*
 
 ![And the bartender said "why the long face" lmao. 12 laughing emoji reactions.](https://i.imgur.com/ztbplsK.png)
 
@@ -125,19 +123,19 @@ Let's start simple. My first goal is to take my `messages_1.json` as **input**, 
 ```js
 output = [
   {
-    name: "Ricardo Lopes",
+    name: 'Ricardo Lopes',
     counts: {
-      😂: 10,
-      😍: 3,
-      😢: 4,
+      '😂': 10,
+      '😍': 3,
+      '😢': 4,
     },
   },
   {
-    name: "Samuel Lopes",
+    name: 'Samuel Lopes',
     counts: {
-      😂: 4,
-      😍: 5,
-      😢: 12,
+      '😂': 4,
+      '😍': 5,
+      '😢': 12,
     },
   },
   // etc for every participant
