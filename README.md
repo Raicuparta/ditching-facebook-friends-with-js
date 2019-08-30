@@ -184,15 +184,26 @@ This is how the logged output looks like:
 
 Those don't look like any emojis I've ever seen. What gives?
 
-Let's take a closer look to how reactions are encoded in the JSON provided by Facebook:
+# Decoding the reaction emoji
+
+I grab one message as an example, and it only has one reaction: the crying emoji (😢). Checking the JSON file, this is what I find:
 
 ```js
 "reaction": "\u00f0\u009f\u0098\u00a2"
 ```
 
-What does that train of colourful characters mean? The `\u` prefix means the the following characters will be treated as a hexadecimal Unicode character code.
+How does this fun character train relate to the crying emoji?
 
-Every Unicode character has a numerical representation. For instance, [the hexadecimal representation of the capital letter S is `0053`](https://unicode-table.com/en/0053/). You can see how it works in JavaScript by typing `"\u0053"` in the console:
+It may not look like it, but this string is four characters long:
+
+* 0: `\u00f0`
+* 1: `\u009f`
+* 2: `\u0098`
+* 3: `\u00a2`
+
+In JavaScript, `\u` is a prefix that denotes an escape sequence. This particular escape sequence is formed by the `\u`, followed by exactly four hexadecimal digits. It represents a Unicode character, described with a UFT-16 character code.
+
+For instance, [the Unicode hex code of the capital letter S is `0053`](https://unicode-table.com/en/0053/). You can see how it works in JavaScript by typing `"\u0053"` in the console:
 
 // \u0053 to S in the console
 
@@ -200,61 +211,43 @@ We can also do it the other way around:
 
 // S to \u0053 in console
 
-Looking at the Unicode table again, we can see [the hex code for the crying emoji is `1F622`](https://unicode-table.com/en/1F622/). So we can print it on the console and-
+Looking at the Unicode table again, we can see [the hex code for the crying emoji is `1F622`](https://unicode-table.com/en/1F622/), which is longer than four digits. There are two ways around this limitation:
 
-// \u1F622 in the console
+* [UFT-16 surrogate pairs](https://en.wikipedia.org/wiki/UTF-16#U+010000_to_U+10FFFF). This splits the big hex number into two smaller 4-digit numbers. In this case, the crying emoji would be represented as `\ud83d\ude22`.
 
-Hm. That's not right either.
+* Use the Unicode code point directly, but for that you need a slightly different format: `\u{1F622}`. The curly brackets wrap the Unicode code point.
 
-This is because `1F622` is bigger than `FFFF`, the biggest number you can represent with four hex digits. Since `\u` will only look at the following 4 digits, `\u1F622` actually gives us two characters, `\u1F62` (`ὢ`) and `2`.
+But this is all pointless because in the JSON we have four character codes, and none of them can be surrogate pairs because [they're not in the right range](https://mathiasbynens.be/notes/javascript-encoding#surrogate-pairs).
 
-In UTF-16, anything bigger than `FFFF` must be split into two codes. But these two codes still only represent a single character. Let's do it the other way around, then:
+So what the hell are they?
 
-// emoji to code
-
-Now we should be able to-
-
-// code to emoji
-
-Okay, wrong again... So it turns out [the JavaScript language doesn't actually use UTF-16](https://mathiasbynens.be/notes/javascript-encoding). Internally, it uses UCS-2, which isn't able to use the pairs of codes like we discussed before. So a pair of codes will be interpreted as two separate characters, until it is printed somewhere. When we actually try to print the string, the surrogate pairs are merged into a single character. The result is `"😢".length == 2` being true.
-
-So let's try that again, taking into account that the emoji is actually composed by two pseudo-characters:
-
-// double-code to emoji
-
-Good. So the character code for `😢` is the surrogate pair `\uD83D\uDE22`. But that doesn't look at all like what Zuckerberg emailed me:
-
-```js
-"reaction": "\u00f0\u009f\u0098\u00a2"
-```
-
-It looks like there's four character codes there, but they can't be surrogate pairs because [they're not in the right range](https://mathiasbynens.be/notes/javascript-encoding#surrogate-pairs). So what are they?
-
-Let's take a look at a bunch of possible encodings for this emoji. Do any of these seem familiar?
+Let's take a look at a bunch of [possible encodings for this emoji](https://graphemica.com/%F0%9F%98%A2). Do any of these seem familiar?
 
 // Screenshot of the encoding at website
 
-There it is! Turns out this is a UTF-8 encoding, with each byte represented as a hex number. But for some reason, they formatted it as if each byte was a Unicode code unit. Why? Who the fuck knows?
+There it is! Turns out this is a UTF-8 encoding, with each byte represented as a hex number. But for some reason, each byte is encoded as a UTF-16 character code.
 
 So how do we go from `\u00f0\u009f\u0098\u00a2` to `\uD83D\uDE22`?
 
-Here's how to make the conversion:
+We need to extract each character as a byte, and then merge the bytes back together as a UTF-8 string:
 
 ```js
-function decodeFBString (fbString) {
-  // Convert from String to Array of character hex code
+function decodeFBEmoji (fbString) {
+  // Convert String to Array of hex codes
   const codeArray = (
-    fbString.              // '\u00f0\u009f\u0098\u00a2'
-    split('').             // ['\u00f0',\u009f',\u0098',\u00a2']
-    map(char => (          // '\u00f0'
-      char.charCodeAt(0)   // 0xf0
-    )                      // [0xf0,0x9f,0x98,0xa2]
-  );
+    fbString  // starts as '\u00f0\u009f\u0098\u00a2'
+    .split('')
+    .map(char => (
+      char.charCodeAt(0)  // convert '\u00f0' to 0xf0
+    )
+  );  // result is [0xf0, 0x9f, 0x98, 0xa2]
 
-  // Convert byte array back to text
+  // Convert plain JavaScript array to Uint8Array
   const byteArray = Uint8Array.from(codeArray);
-  return new TextDecoder().decode(byteArray);
+
+  // Decode byte array as a UTF-8 string
+  return new TextDecoder('utf-8').decode(byteArray);  // '😢'
 }
 ```
 
-`TextDecoder` is the tool we need to convert from bytes to string, but it takes a byte array as input. So we need to go through our awkwardly formatted string and convert each character to a hex number.
+So now we have what we need to properly render our results in a React component.
