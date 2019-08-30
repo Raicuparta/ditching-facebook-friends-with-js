@@ -194,33 +194,29 @@ It may not look like it, but this string is four characters long:
 * 2: `\u0098`
 * 3: `\u00a2`
 
-In JavaScript, `\u` is a prefix that denotes an escape sequence. This particular escape sequence is formed by the `\u`, followed by exactly four hexadecimal digits. It represents a Unicode character, described with a UFT-16 character code.
+In JavaScript, `\u` is a prefix that denotes an escape sequence. This particular escape sequence starts with `\u`, followed by exactly four hexadecimal digits. It represents a Unicode character in UFT-16 format.
 
 For instance, [the Unicode hex code of the capital letter S is `0053`](https://unicode-table.com/en/0053/). You can see how it works in JavaScript by typing `"\u0053"` in the console:
 
-// \u0053 to S in the console
+![JavaScript Console. "\u0053" as input, "S" as output](https://i.imgur.com/KfIY8Lc.png)
 
-We can also do it the other way around:
-
-// S to \u0053 in console
-
-Looking at the Unicode table again, we can see [the hex code for the crying emoji is `1F622`](https://unicode-table.com/en/1F622/), which is longer than four digits. There are two ways around this limitation:
+Looking at the Unicode table again, we can see [the hex code for the crying emoji is `1F622`](https://unicode-table.com/en/1F622/). This is longer than four digits, so simply using `\u1F622` wouldn't work. There are two ways around this:
 
 * [UFT-16 surrogate pairs](https://en.wikipedia.org/wiki/UTF-16#U+010000_to_U+10FFFF). This splits the big hex number into two smaller 4-digit numbers. In this case, the crying emoji would be represented as `\ud83d\ude22`.
 
-* Use the Unicode code point directly, but for that you need a slightly different format: `\u{1F622}`. The curly brackets wrap the Unicode code point.
+* Use the Unicode code point directly, using a slightly different format: `\u{1F622}`. Notice the curly brackets wrapping the code.
 
-But this is all pointless because in the JSON we have four character codes, and none of them can be surrogate pairs because [they're not in the right range](https://mathiasbynens.be/notes/javascript-encoding#surrogate-pairs).
+In the JSON, we have four character codes without curly brackets, and none of them can be surrogate pairs because [they're not in the right range](https://mathiasbynens.be/notes/javascript-encoding#surrogate-pairs).
 
-So what the hell are they?
+So what are they?
 
 Let's take a look at a bunch of [possible encodings for this emoji](https://graphemica.com/%F0%9F%98%A2). Do any of these seem familiar?
 
-// Screenshot of the encoding at website
+![graphemica.com's page on the crying emoji. The encoding for UTF-8 (hex) is "0xF0 0x9F 0x98 0xA2"](https://i.imgur.com/Y18GlSx.png)
 
-There it is! Turns out this is a UTF-8 encoding, with each byte represented as a hex number. But for some reason, each byte is encoded as a UTF-16 character code.
+That's pretty close! Turns out this is a UTF-8 encoding, in hex format. But for some reason, each byte is written as a Unicode character in UTF-16 format.
 
-So how do we go from `\u00f0\u009f\u0098\u00a2` to `\uD83D\uDE22`?
+Knowing this, how do we go from `\u00f0\u009f\u0098\u00a2` to `\uD83D\uDE22`?
 
 We need to extract each character as a byte, and then merge the bytes back together as a UTF-8 string:
 
@@ -243,4 +239,4 @@ function decodeFBEmoji (fbString) {
 }
 ```
 
-So now we have what we need to properly render our results in a React component.
+So now we have what we need to properly render our results:
