@@ -8,11 +8,11 @@ Surely, the value of an individual is subjective. There's no way to benchmark it
 
 More laughing reactions means that's the funny friend. The one with the most angry reactions is the controversial one. And so on. Simple!
 
-Obviously counting manually is out of the question; I need to automate this task.
+Counting manually is out of the question; I need to automate this task.
 
 # Getting the data
 
-Scraping the chats would be too slow. I think there's an API, but it looks scary and the documentation has too many words! I eventually found a way to get the data I need:
+Scraping the chats would be too slow. There's an API, but I don't know if it would work for this. It looks scary and the documentation has too many words! I eventually found a way to get the data I need:
 
 ![Facebook data download page](https://i.imgur.com/4kquCab.png)
 
@@ -73,7 +73,7 @@ The JSON file is structured like this:
 }
 ```
 
-Obviously I want to focus on `messages`. It's not just a list of strings, each message has this format:
+I want to focus on `messages`. Each message has this format:
 
 ```json
 {
@@ -116,7 +116,7 @@ function handleReaderLoad (event) {
 }
 ```
 
-I see the file input field on my page, and the parsed JavaScript object is logged to the console when I select the JSON. It can take a few seconds due to the absurd length. Now I just need to figure out how to read it.
+I see the file input field on my page, and the parsed JavaScript object is logged to the console when I select the JSON. It can take a few seconds due to the absurd length. Now I need to figure out how to read it.
 
 # Parsing the data
 
@@ -194,7 +194,7 @@ It may not look like it, but this string is four characters long:
 * `\u0098`
 * `\u00a2`
 
-In JavaScript, `\u` is a prefix that denotes an escape sequence. This particular escape sequence starts with `\u`, followed by exactly four hexadecimal digits. It represents a Unicode character in UTF-16 format. *Note: [it's a bit more complicated than that](https://mathiasbynens.be/notes/javascript-encoding), but for the purposes of this article we can just consider everything as being UTF-16.*
+In JavaScript, `\u` is a prefix that denotes an escape sequence. This particular escape sequence starts with `\u`, followed by exactly four hexadecimal digits. It represents a Unicode character in UTF-16 format. *Note: [it's a bit more complicated than that](https://mathiasbynens.be/notes/javascript-encoding), but for the purposes of this article we can consider everything as being UTF-16.*
 
 For instance, [the Unicode hex code of the capital letter S is `0053`](https://unicode-table.com/en/0053/). You can see how it works in JavaScript by typing `"\u0053"` in the console:
 
@@ -245,26 +245,25 @@ So now I have what I need to properly render the results:
 
 # Selecting a friend to ditch
 
-In this part of the article I'll need to use advanced calculus techniques that will overwhelm most of the readers. Do not be discouraged, it will make sense in the end.
-
-For this equation, I need some variables:
+I want to calculate a score based on the count of each type of reaction. I need some variables:
 
 * Total message count for participant (**T**)
 * Total reactions sent by participant (**SR**)
 * Global average message count per participant (**AVG**)
 
-I split the six possible reactions into four categories:
+And for the received reactions, I made some categories:
 
 * 👍: Approval (**A**)
 * 👎: Disapproval (**D**)
 * 😆 and 😍: Positive emotion (**PE**)
 * 😢 and 😠: Negative emotion (**NE**)
+* 😮: Neutral, I'll chuck it
 
 The final equation is:
 
 ![Equation: (2A + 3PE + SR) - (2D + 3NE)/(abs(T - AVG) / AVG)](https://i.imgur.com/Jw4JrIO.png)
 
-[Click here if you wanna learn how I reached this equation.](https://i.imgur.com/g7mvdGT.png)
+The higher the resulting score, the better the person. [Here is an explanation of how I reached this equation.](https://i.imgur.com/g7mvdGT.png)
 
 In JavaScript it would go something like this:
 
